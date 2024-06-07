@@ -1,12 +1,8 @@
-# ASP.NET
-# Build and test ASP.NET projects.
-# Add steps that publish symbols, save build artifacts, deploy, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/apps/aspnet/build-aspnet-4
-
 trigger:
 - main
 
-pool: MacBookAgent
+pool: 
+  name: MacBookAgent
 
 variables:
   solution: '**/*.sln'
@@ -14,20 +10,25 @@ variables:
   buildConfiguration: 'Release'
 
 steps:
-- task: NuGetToolInstaller@1
+- task: UseDotNet@2
+  inputs:
+    packageType: 'sdk'
+    version: '8.x.x'  # Use the version of .NET Core 8 you have installed
 
 - task: NuGetCommand@2
   inputs:
     restoreSolution: '$(solution)'
 
-- task: VSBuild@1
-  inputs:
-    solution: '$(solution)'
-    msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:PackageLocation="$(build.artifactStagingDirectory)"'
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
+- script: dotnet build $(solution) --configuration $(buildConfiguration) --output $(build.artifactStagingDirectory)
+  displayName: 'Build solution'
 
-- task: VSTest@2
+- script: dotnet test $(solution) --configuration $(buildConfiguration) --logger trx --results-directory $(Common.TestResultsDirectory)
+  displayName: 'Run tests'
+
+- task: PublishTestResults@2
   inputs:
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
+    testResultsFormat: 'VSTest'
+    testResultsFiles: '**/*.trx'
+    mergeTestResults: true
+    testRunTitle: 'Test Results'
+
