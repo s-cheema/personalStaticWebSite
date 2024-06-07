@@ -6,7 +6,7 @@
 trigger:
 - main
 
-pool: default
+pool: MacBookAgent
 
 variables:
   solution: '**/*.sln'
