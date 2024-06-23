@@ -5,7 +5,7 @@ pool:
   name: SkyNet
 
 variables:
-  solution: '**/*.sln'
+  solution: 'personalStaticWebSite.sln'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
 
