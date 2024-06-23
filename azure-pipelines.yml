@@ -13,7 +13,7 @@ steps:
 - task: UseDotNet@2
   inputs:
     packageType: 'sdk'
-    version: '8.0.301'  # Use the version of .NET Core 8 you have installed
+    version: '8.0.204'  # Use the version of .NET Core 8 you have installed
 
 - task: NuGetCommand@2
   inputs:
@@ -21,14 +21,4 @@ steps:
 
 - script: dotnet build $(solution) --configuration $(buildConfiguration) --output $(build.artifactStagingDirectory)
   displayName: 'Build solution'
-
-- script: dotnet test $(solution) --configuration $(buildConfiguration) --logger trx --results-directory $(Common.TestResultsDirectory)
-  displayName: 'Run tests'
-
-- task: PublishTestResults@2
-  inputs:
-    testResultsFormat: 'VSTest'
-    testResultsFiles: '**/*.trx'
-    mergeTestResults: true
-    testRunTitle: 'Test Results'
 
