@@ -65,4 +65,3 @@ stages:
 
                 # Deploy application
                 az webapp deploy --resource-group $RESOURCE_GROUP --name $WEB_APP_NAME --src-path $(Pipeline.Workspace)/drop
-            workingDirectory: $(System.DefaultWorkingDirectory)
