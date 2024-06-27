@@ -9,34 +9,37 @@ variables:
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
 
-steps:
-- task: UseDotNet@2
-  inputs:
-    packageType: 'sdk'
-    version: '8.0.204'  # Use the version of .NET Core 8 you have installed
-
-- task: NuGetCommand@2
-  inputs:
-    restoreSolution: '$(solution)'
-
-- script: dotnet build $(solution) --configuration $(buildConfiguration) --output $(build.artifactStagingDirectory)
-  displayName: 'Build solution'
-
-- task: DotNetCoreCLI@2
-  inputs:
-    command: 'publish'
-    publishWebProjects: true
-    arguments: '--configuration $(buildConfiguration) --output $(build.artifactStagingDirectory)'
-    zipAfterPublish: true
-
-- task: PublishBuildArtifacts@1
-  inputs:
-    pathToPublish: '$(build.artifactStagingDirectory)'
-    artifactName: 'drop'
-
 stages:
+- stage: Build
+  jobs:
+  - job: Build
+    steps:
+    - task: UseDotNet@2
+      inputs:
+        packageType: 'sdk'
+        version: '8.0.204'  # Use the version of .NET Core 8 you have installed
+
+    - task: NuGetCommand@2
+      inputs:
+        restoreSolution: '$(solution)'
+
+    - script: dotnet build $(solution) --configuration $(buildConfiguration) --output $(build.artifactStagingDirectory)
+      displayName: 'Build solution'
+
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: 'publish'
+        publishWebProjects: true
+        arguments: '--configuration $(buildConfiguration) --output $(build.artifactStagingDirectory)'
+        zipAfterPublish: true
+
+    - task: PublishBuildArtifacts@1
+      inputs:
+        pathToPublish: '$(build.artifactStagingDirectory)'
+        artifactName: 'drop'
+
 - stage: Deploy
-  dependsOn: [Build]
+  dependsOn: Build
   jobs:
   - deployment: AzureWebApp
     environment: 'AzureWebApp'
