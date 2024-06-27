@@ -22,3 +22,44 @@ steps:
 - script: dotnet build $(solution) --configuration $(buildConfiguration) --output $(build.artifactStagingDirectory)
   displayName: 'Build solution'
 
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'publish'
+    publishWebProjects: true
+    arguments: '--configuration $(buildConfiguration) --output $(build.artifactStagingDirectory)'
+    zipAfterPublish: true
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathToPublish: '$(build.artifactStagingDirectory)'
+    artifactName: 'drop'
+
+stages:
+- stage: Deploy
+  dependsOn: [Build]
+  jobs:
+  - deployment: AzureWebApp
+    environment: 'AzureWebApp'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - download: current
+            artifact: drop
+
+          - task: AzureCLI@2
+            inputs:
+              azureSubscription: 's-cheema'  # Replace with your service connection name
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                # Set variables
+                RESOURCE_GROUP="personalStaticWebSiteRg"  # Replace with your resource group name
+                WEB_APP_NAME="personalStaticWebSiteApp"  # Replace with your web app name
+
+                # Deploy using bicep
+                az deployment group create --resource-group $RESOURCE_GROUP --template-file main.bicep
+
+                # Deploy application
+                az webapp deploy --resource-group $RESOURCE_GROUP --name $WEB_APP_NAME --src-path $(Pipeline.Workspace)/drop
+            workingDirectory: $(System.DefaultWorkingDirectory)

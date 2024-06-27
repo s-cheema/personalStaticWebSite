@@ -1,0 +1,51 @@
+# Default ignored files
+/shelf/
+/workspace.xml
+
+# Rider ignored files
+/contentModel.xml
+/.idea.personalStaticWebSite.iml
+/modules.xml
+/projectSettingsUpdater.xml
+
+# Editor-based HTTP Client requests
+/httpRequests/
+
+# Datasource local storage ignored files
+/dataSources/
+/dataSources.local.xml
+
+# Ignore build outputs
+bin/
+obj/
+
+# Ignore .idea folder (Rider, WebStorm)
+.idea/
+
+# Ignore VS Code files
+.vscode/
+
+# Ignore build outputs
+*.dll
+*.exe
+*.pdb
+*.nuget.g.targets
+*.nuget.g.props
+*.sourcelink.json
+*.cache
+*.csproj.user
+*.csproj.CoreCompileInputs.cache
+*.csproj.FileListAbsolute.txt
+
+# Ignore user-specific files
+*.user
+*.suo
+
+# Ignore application settings
+**/appsettings.Development.json
+**/appsettings.json
+
+# Ignore generated files
+*.generated.cs
+razorWebSite/bin/
+razorWebSite/obj/
