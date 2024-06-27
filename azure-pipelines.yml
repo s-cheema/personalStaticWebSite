@@ -52,7 +52,7 @@ stages:
 
           - task: AzureCLI@2
             inputs:
-              azureSubscription: 's-cheema'  # Replace with your service connection name
+              azureSubscription: 'AzureServiceConnection'  # Replace with your service connection name
               scriptType: 'bash'
               scriptLocation: 'inlineScript'
               inlineScript: |
