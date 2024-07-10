@@ -26,17 +26,22 @@ stages:
     - script: dotnet build $(solution) --configuration $(buildConfiguration) --output $(build.artifactStagingDirectory)
       displayName: 'Build solution'
 
+    - script: |
+        echo "Cleaning up output directory"
+        rm -rf $(build.artifactStagingDirectory)/razorWebSite
+      displayName: 'Clean output directory'
+
     - task: DotNetCoreCLI@2
       inputs:
         command: 'publish'
         publishWebProjects: false
-        projects: '**/*.csproj'
-        arguments: '--configuration $(buildConfiguration) --output $(build.artifactStagingDirectory)'
+        projects: '$(System.DefaultWorkingDirectory)/razorWebSite/razorWebSite.csproj'
+        arguments: '--configuration $(buildConfiguration) --output $(build.artifactStagingDirectory)/razorWebSite'
         zipAfterPublish: true
 
     - task: PublishBuildArtifacts@1
       inputs:
-        pathToPublish: '$(build.artifactStagingDirectory)'
+        pathToPublish: '$(build.artifactStagingDirectory)/razorWebSite'
         artifactName: 'drop'
 
 - stage: Deploy
