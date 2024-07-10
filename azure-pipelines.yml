@@ -26,16 +26,22 @@ stages:
     - script: dotnet build $(solution) --configuration $(buildConfiguration) --output $(build.artifactStagingDirectory)
       displayName: 'Build solution'
 
+    - script: |
+        echo "Cleaning up output directory"
+        rm -rf $(build.artifactStagingDirectory)/razorWebSite
+      displayName: 'Clean output directory'
+
     - task: DotNetCoreCLI@2
       inputs:
         command: 'publish'
-        publishWebProjects: true
-        arguments: '--configuration $(buildConfiguration) --output $(build.artifactStagingDirectory)'
+        publishWebProjects: false
+        projects: '$(System.DefaultWorkingDirectory)/razorWebSite/razorWebSite.csproj'
+        arguments: '--configuration $(buildConfiguration) --output $(build.artifactStagingDirectory)/razorWebSite'
         zipAfterPublish: true
 
     - task: PublishBuildArtifacts@1
       inputs:
-        pathToPublish: '$(build.artifactStagingDirectory)'
+        pathToPublish: '$(build.artifactStagingDirectory)/razorWebSite'
         artifactName: 'drop'
 
 - stage: Deploy
@@ -57,11 +63,18 @@ stages:
               scriptLocation: 'inlineScript'
               inlineScript: |
                 # Set variables
-                RESOURCE_GROUP="personalStaticWebSiteRg"  # Replace with your resource group name
+                RESOURCE_GROUP="personalStaticWebSiteRg"  # Use the correct resource group name
                 WEB_APP_NAME="personalStaticWebSiteApp"  # Replace with your web app name
+                BICEP_FILE_PATH="$(System.DefaultWorkingDirectory)/Infrastructure/main.bicep"
+                ZIP_FILE_PATH="$(Pipeline.Workspace)/drop/razorWebSite.zip"
 
                 # Deploy using bicep
-                az deployment group create --resource-group $RESOURCE_GROUP --template-file main.bicep
+                az deployment group create --resource-group $RESOURCE_GROUP --template-file $BICEP_FILE_PATH
 
                 # Deploy application
-                az webapp deploy --resource-group $RESOURCE_GROUP --name $WEB_APP_NAME --src-path $(Pipeline.Workspace)/drop
+                if [ -f $ZIP_FILE_PATH ]; then
+                  az webapp deploy --resource-group $RESOURCE_GROUP --name $WEB_APP_NAME --src-path $ZIP_FILE_PATH --type zip
+                else
+                  echo "Error: Zip file not found at $ZIP_FILE_PATH"
+                  exit 1
+                fi
