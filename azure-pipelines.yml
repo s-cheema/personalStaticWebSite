@@ -17,7 +17,7 @@ stages:
     - task: UseDotNet@2
       inputs:
         packageType: 'sdk'
-        version: '8.0.300'  # Use the version of .NET Core 8 you have installed
+        version: '8.0.x'  # Use the version of .NET Core 8 you have installed
 
     - task: NuGetCommand@2
       inputs:
@@ -29,7 +29,8 @@ stages:
     - task: DotNetCoreCLI@2
       inputs:
         command: 'publish'
-        publishWebProjects: true
+        publishWebProjects: false
+        projects: '**/*.csproj'
         arguments: '--configuration $(buildConfiguration) --output $(build.artifactStagingDirectory)'
         zipAfterPublish: true
 
@@ -64,4 +65,4 @@ stages:
                 az deployment group create --resource-group $RESOURCE_GROUP --template-file main.bicep
 
                 # Deploy application
-                az webapp deploy --resource-group $RESOURCE_GROUP --name $WEB_APP_NAME --src-path $(Pipeline.Workspace)/drop
+                az webapp deploy --resource-group $RESOURCE_GROUP --name $WEB_APP_NAME --src-path $(Pipeline.Workspace)/drop/yourproject.zip --type zip
