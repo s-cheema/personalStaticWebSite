@@ -26,16 +26,22 @@ stages:
     - script: dotnet build $(solution) --configuration $(buildConfiguration) --output $(build.artifactStagingDirectory)
       displayName: 'Build solution'
 
+    - script: |
+        echo "Cleaning up output directory"
+        rm -rf $(build.artifactStagingDirectory)/razorWebSite
+      displayName: 'Clean output directory'
+
     - task: DotNetCoreCLI@2
       inputs:
         command: 'publish'
-        publishWebProjects: true
-        arguments: '--configuration $(buildConfiguration) --output $(build.artifactStagingDirectory)'
+        publishWebProjects: false
+        projects: '$(System.DefaultWorkingDirectory)/razorWebSite/razorWebSite.csproj'
+        arguments: '--configuration $(buildConfiguration) --output $(build.artifactStagingDirectory)/razorWebSite'
         zipAfterPublish: true
 
     - task: PublishBuildArtifacts@1
       inputs:
-        pathToPublish: '$(build.artifactStagingDirectory)'
+        pathToPublish: '$(build.artifactStagingDirectory)/razorWebSite'
         artifactName: 'drop'
 
 - stage: Deploy
@@ -59,9 +65,11 @@ stages:
                 # Set variables
                 RESOURCE_GROUP="personalStaticWebSiteRg"  # Replace with your resource group name
                 WEB_APP_NAME="personalStaticWebSiteApp"  # Replace with your web app name
+                BICEP_FILE_PATH="$(System.DefaultWorkingDirectory)/Infrastructure/main.bicep"
+
 
                 # Deploy using bicep
-                az deployment group create --resource-group $RESOURCE_GROUP --template-file main.bicep
+                az deployment group create --resource-group $RESOURCE_GROUP --template-file $BICEP_FILE_PATH
 
                 # Deploy application
-                az webapp deploy --resource-group $RESOURCE_GROUP --name $WEB_APP_NAME --src-path $(Pipeline.Workspace)/drop
+                az webapp deploy --resource-group $RESOURCE_GROUP --name $WEB_APP_NAME --src-path $(Pipeline.Workspace)/drop/yourproject.zip --type zip
